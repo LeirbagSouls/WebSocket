@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones WebSocket con Node.js</title>
+</head>
+<body>
+    <h1>Notificaciones WebSocket</h1>
+    <input type="text" id="messageInput" placeholder="Escribe tu mensaje aquí">
+    <button onclick="sendMessage()">Enviar Notificación</button>
+
+    <h2>Notificaciones Recibidas:</h2>
+    <div id="messages"></div>
+
+    <script>
+        // Conectar al servidor WebSocket
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.onmessage = function(event) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = event.data;
+            document.getElementById('messages').appendChild(messageDiv);
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value;
+            ws.send(message);
+            input.value = '';  // Limpiar el campo de entrada después de enviar el mensaje
+        }
+    </script>
+</body>
+</html>

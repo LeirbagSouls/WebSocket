@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 en Raya WebSocket con Node.js</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: auto;
+            padding: 10px;
+            text-align: center;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>3 en Raya</h1>
+    <div id="status">Esperando a otro jugador...</div>
+    <div id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+        let mySymbol = '';
+        let isMyTurn = false;
+
+        const cells = document.querySelectorAll('.cell');
+        const statusDiv = document.getElementById('status');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'init') {
+                mySymbol = data.symbol;
+                statusDiv.textContent = `Eres ${mySymbol}`;
+            }
+
+            if (data.type === 'start') {
+                isMyTurn = data.turn;
+                statusDiv.textContent = isMyTurn ? 'Tu turno' : 'Turno del oponente';
+            }
+
+            if (data.type === 'move') {
+                cells[data.index].textContent = data.symbol;
+                isMyTurn = true;
+                statusDiv.textContent = 'Tu turno';
+            }
+        };
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', () => {
+                if (isMyTurn && cell.textContent === '') {
+                    cell.textContent = mySymbol;
+                    ws.send(JSON.stringify({ type: 'move', index: cell.dataset.index, symbol: mySymbol }));
+                    isMyTurn = false;
+                    statusDiv.textContent = 'Turno del oponente';
+                }
+            });
+        });
+
+        ws.onclose = function() {
+            statusDiv.textContent = 'El otro jugador se desconectó. Recarga la página para empezar un nuevo juego.';
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat WebSocket con Node.js</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: auto;
+            padding: 10px;
+        }
+        #chatbox {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #chatbox div {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat WebSocket</h1>
+    <div id="chatbox"></div>
+    <input type="text" id="messageInput" placeholder="Escribe tu mensaje aquí" onkeydown="if(event.key === 'Enter') sendMessage();">
+    <button onclick="sendMessage()">Enviar</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+
+        ws.onmessage = function(event) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = event.data;
+            document.getElementById('chatbox').appendChild(messageDiv);
+            // Desplazar hacia abajo al recibir un nuevo mensaje
+            document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
+        };
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (message !== "") {
+                // Mostrar el mensaje en el chatbox antes de enviarlo al servidor
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `Tú: ${message}`;
+                document.getElementById('chatbox').appendChild(messageDiv);
+                document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
+
+                // Enviar el mensaje al servidor
+                ws.send(message);
+
+                // Limpiar el campo de entrada
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
